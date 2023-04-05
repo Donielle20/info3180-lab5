@@ -4,11 +4,16 @@ Jinja2 Documentation:    https://jinja.palletsprojects.com/
 Werkzeug Documentation:  https://werkzeug.palletsprojects.com/
 This file creates your application.
 """
-
+import json
+import jwt
+import psycopg2
 from app import app
-from flask import render_template, request, jsonify, send_file
+from flask import jsonify, render_template, request, jsonify, send_file, send_from_directory, url_for
 import os
-
+from app import db
+from app.models import Movies
+from .forms import MovieForm
+from werkzeug.utils import secure_filename
 
 ###
 # Routing for your application.
@@ -18,6 +23,34 @@ import os
 def index():
     return jsonify(message="This is the beginning of our API")
 
+@app.route('/api/v1/movies', methods=['POST'])
+def movies():
+    myform = MovieForm()
+    if request.method == 'POST':
+        if myform.validate_on_submit():
+            title = myform.title.data
+            description = myform.description.data
+            poster = myform.poster.data
+
+            filename = secure_filename(poster.filename)
+
+            movie = Movies(title=title, description=description, poster=poster)
+            db.session.add(movie)
+            db.session.commit()
+
+            poster.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+            # dic = {}
+            # dic = {
+            #     "message": "Movie Successfully added",
+            #     "title": title,
+            #     "poster": filename,
+            #     "description": description
+            # }
+
+            return jsonify({"message": "Movie Successfully added","title": title,"poster": filename,"description": description})
+        else:
+            return jsonify({"errors": [{form_errors(myform)},{form_errors(myform)}]})
 
 ###
 # The functions below should be applicable to all Flask apps.
@@ -61,3 +94,10 @@ def add_header(response):
 def page_not_found(error):
     """Custom 404 page."""
     return render_template('404.html'), 404
+
+@app.route('/uploads/<filename>')
+def get_image(filename):
+    return send_from_directory(os.path.join(os.getcwd(),app.config['UPLOAD_FOLDER']), filename)
+
+def connect_db():
+    return psycopg2.connect(host="localhost", database="lab5", user="lab5", password="Loveisdeath123321")

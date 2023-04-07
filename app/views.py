@@ -14,6 +14,7 @@ from app import db
 from app.models import Movies
 from .forms import MovieForm
 from werkzeug.utils import secure_filename
+from flask_wtf.csrf import generate_csrf
 
 ###
 # Routing for your application.
@@ -34,7 +35,7 @@ def movies():
 
             filename = secure_filename(poster.filename)
 
-            movie = Movies(title=title, description=description, poster=poster)
+            movie = Movies(title=title, description=description, poster=filename)
             db.session.add(movie)
             db.session.commit()
 
@@ -50,7 +51,7 @@ def movies():
 
             return jsonify({"message": "Movie Successfully added","title": title,"poster": filename,"description": description})
         else:
-            return jsonify({"errors": [{form_errors(myform)},{form_errors(myform)}]})
+            return jsonify({"errors": form_errors(myform)})
 
 ###
 # The functions below should be applicable to all Flask apps.
@@ -101,3 +102,7 @@ def get_image(filename):
 
 def connect_db():
     return psycopg2.connect(host="localhost", database="lab5", user="lab5", password="Loveisdeath123321")
+
+@app.route('/api/v1/csrf-token', methods=['GET'])
+def get_csrf():
+    return jsonify({'csrf_token': generate_csrf()})

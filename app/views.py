@@ -53,6 +53,18 @@ def movies():
         else:
             return jsonify({"errors": form_errors(myform)})
 
+@app.route('/api/v1/movies', methods=['GET'])
+def show():
+    DB = connect_db()
+    cur = DB.cursor()
+    cur.execute('select * from movies')
+    movies = cur.fetchall()
+    todos = [
+        { "id": 1, "title": "Item 1" },
+        { "id": 2, "title": "Item 2" },
+        { "id": 3, "title": "Item 3" },
+    ]
+    return jsonify({"movies": movies})
 ###
 # The functions below should be applicable to all Flask apps.
 ###

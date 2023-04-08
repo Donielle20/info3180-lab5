@@ -1,19 +1,27 @@
 <template>
     <div class="container-fluid">
+        <div v-if="success" class="alert alert-success">
+            <h6>File Upload Successful</h6>
+        </div>
+
+        <div v-if="fail" class="alert alert-danger">
+            <li v-for="error in error_message">{{error}}</li>
+        </div>
+        
         <form @submit.prevent="saveMovie" id="movieForm">
                 <div class="form-group mb-3">
                     <label for="title" class="form-label">Movie Title</label>
-                    <input type="text" name="title" class="form-control" />
+                    <input id="first" type="text" name="title" class="form-control" />
                 </div>
 
                 <div class="form-group mb-3">
                     <label for="description" class="form-label">Description</label>
-                    <input type="text" name="description" class="form-control" />
+                    <input id="second" type="text" name="description" class="form-control" />
                 </div>
 
                 <div class="form-group mb-3">
                     <label for="poster" class="form-label">Add Poster</label>
-                    <input type="file" name="poster" class="form-control" />
+                    <input id="third" type="file" name="poster" class="form-control" />
                 </div>
 
                 <input type="submit" class="btn btn-primary" value="Submit">
@@ -25,9 +33,14 @@
 <script setup>
     import { ref, onMounted  } from "vue";
     let csrf_token = ref("");
+    let success = ref(false);
+    let fail = ref(false);
+    let error_message = ref('');
 
     onMounted(() => {
         getCsrfToken();
+        success.value = false;
+        fail.value = false;
     });
 
     function saveMovie() 
@@ -47,8 +60,32 @@
                     return response.json();
                 })
                 .then(function (data) {
-                    // display a success message
-                    console.log(data);
+
+                    let i = 0;
+
+                    for (i in data)
+                    {
+                        error_message = data[i];
+                    }
+
+                    if(document.getElementById('first').value == "" || document.getElementById('second').value == "" || document.getElementById('third').value == "")
+                    {
+                        fail.value = true;
+                    }
+                    else
+                    {
+                        success.value = true;
+                    }
+                    
+                    setTimeout(function() 
+                    {
+                        success.value = false;
+                    }, 3000);
+
+                    setTimeout(function() 
+                    {
+                        fail.value = false;
+                    }, 3000);
                 })
                 .catch(function (error) {
                     console.log(error);

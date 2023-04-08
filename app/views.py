@@ -54,7 +54,7 @@ def movies():
             return jsonify({"errors": form_errors(myform)})
 
 @app.route('/api/v1/movies', methods=['GET'])
-def show():
+def add_movies():
     DB = connect_db()
     cur = DB.cursor()
     cur.execute('select * from movies')
